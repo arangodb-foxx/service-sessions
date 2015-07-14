@@ -4,6 +4,7 @@
   "author": "ArangoDB GmbH",
   "license": "Apache License, Version 2.0",
   "description": "ArangoDB Session-Service",
+  "defaultDocument": "",
   "controllers": "api.js",
   "scripts": {
     "setup": "setup.js",
@@ -21,7 +22,7 @@
       "description": "Length of generated session secrets."
     },
     "signingAlgorithm": {
-      "default": "sha512",
+      "default": "sha256",
       "type": "string",
       "description": "Hash algorithm to use for signatures."
     }

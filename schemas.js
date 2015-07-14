@@ -8,7 +8,7 @@ exports.sessionId = joi.string().required()
 exports.sessionData = joi.object()
 .default(Object, 'empty object');
 exports.incomingSession = joi.object()
-.keys({sessionData: joi.object().required()})
+.keys({sessionData: joi.object().default(Object, 'empty object')})
 .description('Incoming session object.');
 exports.credentials = joi.object()
 .description('Login credentials.');

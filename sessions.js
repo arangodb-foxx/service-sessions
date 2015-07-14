@@ -22,9 +22,9 @@ const Repository = Foxx.Repository.extend({
     this.collection.update(data, {lastAccessed: now});
     return model;
   },
-  save(model) {
+  replace(model) {
     model.set('lastUpdated', Date.now());
-    return Foxx.Repository.prototype.save.call(this, model);
+    return Foxx.Repository.prototype.replace.call(this, model);
   },
   remove(id) {
     try {

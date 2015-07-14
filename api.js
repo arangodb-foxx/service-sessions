@@ -15,7 +15,7 @@ const ctrl = new Foxx.Controller(applicationContext);
 */
 ctrl.post('/', function (req, res) {
   const session = new Session();
-  session.set(req.parameters.session);
+  session.set(req.params('session'));
   sessions.save(session);
   res.json(session.forClient());
   res.status(201);
@@ -27,7 +27,7 @@ ctrl.post('/', function (req, res) {
 * Fetches a session from the database and returns its session data.
 */
 ctrl.get('/:sessionId', function (req, res) {
-  let session = sessions.byId(req.parameters.sessionId);
+  let session = sessions.byId(req.params('sessionId'));
   res.json(session.forClient());
   res.status(200);
 })
@@ -38,9 +38,9 @@ ctrl.get('/:sessionId', function (req, res) {
 * Replaces the session data of a session in the database.
 */
 ctrl.put('/:sessionId', function (req, res) {
-  let session = sessions.byId(req.parameters.sessionId);
-  session.set(req.parameters.session);
-  sessions.save(session);
+  let session = sessions.byId(req.params('sessionId'));
+  session.set(req.params('session'));
+  sessions.replace(session);
   res.json(session.forClient());
   res.status(200);
 })
@@ -52,7 +52,7 @@ ctrl.put('/:sessionId', function (req, res) {
 * Removes the session from the database.
 */
 ctrl.delete('/:sessionId', function (req, res) {
-  sessions.remove(req.parameters.sessionId);
+  sessions.remove(req.params('sessionId'));
   res.status(204);
 })
 .pathParam('sessionId', schemas.sessionId);
@@ -72,9 +72,9 @@ ctrl.put('/:sessionId/authenticate', function (req, res) {
 * Removes the session's user data.
 */
 ctrl.put('/:sessionId/logout', function (req, res) {
-  let session = sessions.byId(req.parameters.sessionId);
+  let session = sessions.byId(req.params('sessionId'));
   session.set({uid: null, userData: {}});
-  sessions.save(session);
+  sessions.replace(session);
   res.json(session.forClient());
   res.status(200);
 })
@@ -85,10 +85,10 @@ ctrl.put('/:sessionId/logout', function (req, res) {
 * Creates a signature for the given payload.
 */
 ctrl.post('/:sessionId/sign', function (req, res) {
-  let session = sessions.byId(req.parameters.sessionId);
+  let session = sessions.byId(req.params('sessionId'));
   let signature = util.createSignature(
     session.get('secret'),
-    req.parameters.payload
+    req.params('payload')
   );
   res.json({signature: signature});
   res.status(201);
@@ -101,12 +101,12 @@ ctrl.post('/:sessionId/sign', function (req, res) {
 * Verifies the signature for the given payload.
 */
 ctrl.put('/:sessionId/sign/:signature', function (req, res) {
-  let payload = req.parameters.payload;
-  let session = sessions.byId(req.parameters.sessionId);
+  let payload = req.params('payload');
+  let session = sessions.byId(req.params('sessionId'));
   let valid = util.verifySignature(
     session.get('secret'),
     payload,
-    req.parameters.signature
+    req.params('signature')
   );
   if (!valid) {
     throw new httperr.BadRequest('Invalid signature');
