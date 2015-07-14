@@ -16,8 +16,13 @@ const Repository = Foxx.Repository.extend({
       ) throw new NotFound();
       else throw e;
     }
-    let model = new this.model(data);
     let now = Date.now();
+    let timestamp = data[applicationContext.configuration.expiryType] || 0;
+    if (now > timestamp + (applicationContext.configuration.expiryDuration * 1000)) {
+      this.remove(id);
+      throw new NotFound();
+    }
+    let model = new this.model(data);
     model.set('lastAccessed', now);
     this.collection.update(data, {lastAccessed: now});
     return model;

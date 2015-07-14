@@ -1,5 +1,29 @@
 # ArangoDB Session-Service
 
+## Configuration
+
+* **sessionIdLength**: *integer* (default: `16`)
+
+  Length of the session ID that will be generated when a session is created.
+
+* **signingSecretLength**: *integer* (default: `128`)
+
+  Length of the session secret that will be generated when a session is created and will be used to generate signatures.
+
+* **signingAlgorithm**: *string* (default: `"sha256"`)
+
+  Hashing algorithm to use for signatures. Supported algorithms are:
+  *sha128*, *sha256*, *sha384* and *sha512*.
+
+* **expiryDuration**: *integer* (default: `1209600`)
+
+  How long (in seconds) a session will be considered valid before it expires.
+
+* **expiryType**: *string* (default: `"lastAccess"`)
+
+  What timestamp is used to determine whether a session has expired. Supported values are:
+  *lastAccess*, *lastUpdate* and *created*.
+
 ## HTTP API
 
 ### POST /
