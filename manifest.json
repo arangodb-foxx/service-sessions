@@ -7,8 +7,8 @@
   "defaultDocument": "",
   "controllers": "api.js",
   "scripts": {
-    "setup": "setup.js",
-    "teardown": "teardown.js"
+    "setup": "scripts/setup.js",
+    "teardown": "scripts/teardown.js"
   },
   "configuration": {
     "sessionIdLength": {
