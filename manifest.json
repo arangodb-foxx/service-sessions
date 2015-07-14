@@ -1,0 +1,29 @@
+{
+  "name": "session-service",
+  "version": "0.0.0",
+  "author": "ArangoDB GmbH",
+  "license": "Apache License, Version 2.0",
+  "description": "ArangoDB Session-Service",
+  "controllers": "api.js",
+  "scripts": {
+    "setup": "setup.js",
+    "teardown": "teardown.js"
+  },
+  "configuration": {
+    "sessionIdLength": {
+      "default": 16,
+      "type": "integer",
+      "description": "Length of generated session IDs."
+    },
+    "signingSecretLength": {
+      "default": 128,
+      "type": "integer",
+      "description": "Length of generated session secrets."
+    },
+    "signingAlgorithm": {
+      "default": "sha512",
+      "type": "string",
+      "description": "Hash algorithm to use for signatures."
+    }
+  }
+}
