@@ -8,7 +8,8 @@
   "controllers": "api.js",
   "scripts": {
     "setup": "scripts/setup.js",
-    "teardown": "scripts/teardown.js"
+    "teardown": "scripts/teardown.js",
+    "prune": "scripts/prune.js"
   },
   "configuration": {
     "sessionIdLength": {
