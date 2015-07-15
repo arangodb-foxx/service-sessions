@@ -10,7 +10,11 @@ exports.sessionData = joi.object()
 exports.incomingSession = joi.object()
 .keys({sessionData: joi.object().default(Object, 'empty object')})
 .description('Incoming session object.');
-exports.credentials = joi.object()
+exports.credentials = joi.object().required()
+.keys({
+  username: joi.string().required(),
+  password: joi.string().required()
+})
 .description('Login credentials.');
 exports.signature = joi.string().required()
 .description('A cryptographic signature.');
