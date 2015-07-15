@@ -18,17 +18,18 @@ const Repository = Foxx.Repository.extend({
     }
     let now = Date.now();
     let timestamp = data[applicationContext.configuration.expiryType] || 0;
+
     if (now > timestamp + (applicationContext.configuration.expiryDuration * 1000)) {
       this.remove(id);
       throw new NotFound();
     }
     let model = new this.model(data);
-    model.set('lastAccessed', now);
-    this.collection.update(data, {lastAccessed: now});
+    model.set('lastAccess', now);
+    this.collection.update(data, {lastAccess: now});
     return model;
   },
   replace(model) {
-    model.set('lastUpdated', Date.now());
+    model.set('lastUpdate', Date.now());
     return Foxx.Repository.prototype.replace.call(this, model);
   },
   remove(id) {

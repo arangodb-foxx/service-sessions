@@ -23,8 +23,8 @@ exports.session = joi.object()
   sessionData: joi.object().default(Object, 'empty object'),
   userData: joi.object().default(Object, 'empty object'),
   uid: joi.string().allow(null).default(null),
-  lastAccessed: joi.number().integer().default(Date.now, 'current time'),
-  lastUpdated: joi.number().integer().default(Date.now, 'current time'),
+  lastAccess: joi.number().integer().default(Date.now, 'current time'),
+  lastUpdate: joi.number().integer().default(Date.now, 'current time'),
   created: joi.number().integer().default(Date.now, 'current time'),
   secret: joi.string().default(util.generateSessionSecret, 'session secret')
 });
