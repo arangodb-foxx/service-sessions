@@ -67,7 +67,8 @@ ctrl.put('/:sessionId/authenticate', function (req, res) {
   let userData = util.authenticate(credentials.username, credentials.password);
   session.set({uid: credentials.username, userData: userData});
   sessions.replace(session);
-  res.status(204);
+  res.json(session.forClient());
+  res.status(200);
 })
 .pathParam('sessionId', schemas.sessionId)
 .bodyParam('credentials', schemas.credentials);

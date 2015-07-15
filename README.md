@@ -2,6 +2,10 @@
 
 ## Configuration
 
+* **usersRoot**: *string* (default: `"/users"`)
+
+  Root URL of the user service to authenticate users with.
+
 * **sessionIdLength**: *integer* (default: `16`)
 
   Length of the session ID that will be generated when a session is created.
@@ -44,7 +48,7 @@ Destroys the session and removes it from the database if it exists. Returns an e
 
 ### PUT /:sessionId/authenticate
 
-**Not implemented.**
+Authenticates the user with the user service using the given username and password. The request body must be an object with two string properties `username` and `password`. Returns the updated session object.
 
 ### PUT /:sessionId/logout
 
