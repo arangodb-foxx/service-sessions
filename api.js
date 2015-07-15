@@ -62,7 +62,14 @@ ctrl.delete('/:sessionId', function (req, res) {
 * Authenticates the user with the given credentials.
 */
 ctrl.put('/:sessionId/authenticate', function (req, res) {
-  throw new httperr.NotImplemented('PUT /:sessionId/authenticate');
+  let session = sessions.byId(req.params('sessionId'));
+  let userData = util.authenticate(credentials.username, credentials.password);
+  session.set({
+    uid: credentials.username,
+    userData: userData
+  });
+  session.save();
+  res.status(204);
 })
 .pathParam('sessionId', schemas.sessionId)
 .bodyParam('credentials', schemas.credentials);

@@ -12,6 +12,11 @@
     "prune": "scripts/prune.js"
   },
   "configuration": {
+    "usersRoot": {
+      "default": "/users",
+      "type": "string",
+      "description": "Root URL of user service."
+    },
     "sessionIdLength": {
       "default": 16,
       "type": "integer",
