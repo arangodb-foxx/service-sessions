@@ -1,6 +1,5 @@
 /*global require, applicationContext */
 'use strict';
-const joi = require('joi');
 const Foxx = require('org/arangodb/foxx');
 const httperr = require('http-errors');
 const schemas = require('./schemas');
@@ -11,7 +10,7 @@ const ctrl = new Foxx.Controller(applicationContext);
 
 /** Create a new session.
 *
-* Creates a new session in the database and returns the session object.
+* Creates a new session in the database and returns it.
 */
 ctrl.post('/', function (req, res) {
   const session = new Session();
@@ -22,30 +21,33 @@ ctrl.post('/', function (req, res) {
 })
 .bodyParam('session', schemas.incomingSession);
 
-/** Get the session's data.
+/** Get the session.
 *
-* Fetches a session from the database and returns its session data.
+* Fetches a session from the database and returns it.
 */
 ctrl.get('/:sessionId', function (req, res) {
-  let session;
-  sessions.transaction(function () {
-    session = sessions.byId(req.params('sessionId'));
-  });
+  const session = sessions.byId(req.params('sessionId'));
   res.json(session.forClient());
   res.status(200);
 })
 .pathParam('sessionId', schemas.sessionId);
 
-/** Replace the session's data.
+/** Update the session.
 *
-* Replaces the session data of a session in the database.
+* Replaces the session data of a session in the database
+* or just updates its expiry if no session data is sent.
+* Returns the updated session.
 */
 ctrl.put('/:sessionId', function (req, res) {
+  const sessionData = req.params('session').sessionData;
   let session;
   sessions.transaction(function () {
     session = sessions.byId(req.params('sessionId'));
-    session.set(req.params('session'));
-    sessions.replace(session);
+    if (!sessionData) sessions.update(session);
+    else {
+      session.set('sessionData', sessionData);
+      sessions.replace(session);
+    }
   });
   res.json(session.forClient());
   res.status(200);
@@ -68,13 +70,12 @@ ctrl.delete('/:sessionId', function (req, res) {
 * Authenticates the user with the given credentials.
 */
 ctrl.put('/:sessionId/authenticate', function (req, res) {
-  let credentials = req.params('credentials');
-  let userData = util.authenticate(credentials.username, credentials.password);
+  const credentials = req.params('credentials');
+  const userData = util.authenticate(credentials.username, credentials.password);
   let session;
   sessions.transaction(function () {
     session = sessions.byId(req.params('sessionId'));
-    session.set({uid: credentials.username, userData: userData});
-    sessions.replace(session);
+    sessions.update(session, {uid: credentials.username, userData: userData});
   });
   res.json(session.forClient());
   res.status(200);
@@ -84,7 +85,7 @@ ctrl.put('/:sessionId/authenticate', function (req, res) {
 
 /** Log out a user.
 *
-* Removes the session's user data.
+* Clears the session's user data.
 */
 ctrl.put('/:sessionId/logout', function (req, res) {
   let session;
@@ -103,11 +104,8 @@ ctrl.put('/:sessionId/logout', function (req, res) {
 * Creates a signature for the given payload.
 */
 ctrl.post('/:sessionId/sign', function (req, res) {
-  let session;
-  sessions.transaction(function () {
-    session = sessions.byId(req.params('sessionId'));
-  });
-  let signature = util.createSignature(
+  const session = sessions.byId(req.params('sessionId'));
+  const signature = util.createSignature(
     session.get('secret'),
     req.params('payload')
   );
@@ -122,12 +120,9 @@ ctrl.post('/:sessionId/sign', function (req, res) {
 * Verifies the signature for the given payload.
 */
 ctrl.put('/:sessionId/sign/:signature', function (req, res) {
-  let session;
-  sessions.transaction(function () {
-    session = sessions.byId(req.params('sessionId'));
-  });
-  let payload = req.params('payload');
-  let valid = util.verifySignature(
+  const session = sessions.byId(req.params('sessionId'));
+  const payload = req.params('payload');
+  const valid = util.verifySignature(
     session.get('secret'),
     payload,
     req.params('signature')

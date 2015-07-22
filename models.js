@@ -1,7 +1,6 @@
 /*global require, exports */
 'use strict';
 const _ = require('underscore');
-const joi = require('joi');
 const Foxx = require('org/arangodb/foxx');
 const schemas = require('./schemas');
 

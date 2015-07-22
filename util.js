@@ -32,5 +32,8 @@ exports.authenticate = function (username, password) {
   if (res.status >= 400) {
     throw new httperr.ServiceUnavailable(res.message);
   }
-  return res.json;
+  return res.body;
+};
+exports.getExpiry = function () {
+  return Date.now() + applicationContext.configuration.expiryDuration;
 };

@@ -4,6 +4,8 @@ const NotFound = require('http-errors').NotFound;
 const arangodb = require('org/arangodb');
 const Foxx = require('org/arangodb/foxx');
 const Session = require('./models').Session;
+const util = require('./util');
+
 const Repository = Foxx.Repository.extend({
   byId(id) {
     let data;
@@ -16,21 +18,24 @@ const Repository = Foxx.Repository.extend({
       ) throw new NotFound();
       else throw e;
     }
-    let now = Date.now();
-    let timestamp = data[applicationContext.configuration.expiryType] || 0;
-
-    if (now > timestamp + (applicationContext.configuration.expiryDuration * 1000)) {
+    if (Date.now() > data.expiry) {
       this.remove(id);
       throw new NotFound();
     }
-    let model = new this.model(data);
-    model.set('lastAccess', now);
-    this.collection.update(data, {lastAccess: now});
-    return model;
+    return new this.model(data);
+  },
+  setUser(model, uid, userData) {
+    model.set({uid: uid, userData: userData});
+    return this.replace(model);
   },
   replace(model) {
-    model.set('lastUpdate', Date.now());
+    model.set('expiry', util.getExpiry());
     return Foxx.Repository.prototype.replace.call(this, model);
+  },
+  update(model, data) {
+    if (!data) data = {};
+    data.expiry = util.getExpiry();
+    return Foxx.Repository.prototype.update.call(this, model, data);
   },
   remove(id) {
     try {

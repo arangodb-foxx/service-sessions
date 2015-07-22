@@ -8,7 +8,7 @@ exports.sessionId = joi.string().required()
 exports.sessionData = joi.object()
 .default(Object, 'empty object');
 exports.incomingSession = joi.object()
-.keys({sessionData: joi.object().default(Object, 'empty object')})
+.keys({sessionData: joi.object().optional()})
 .description('Incoming session object.');
 exports.credentials = joi.object().required()
 .keys({
@@ -27,8 +27,6 @@ exports.session = joi.object()
   sessionData: joi.object().default(Object, 'empty object'),
   userData: joi.object().default(Object, 'empty object'),
   uid: joi.string().allow(null).default(null),
-  lastAccess: joi.number().integer().default(Date.now, 'current time'),
-  lastUpdate: joi.number().integer().default(Date.now, 'current time'),
-  created: joi.number().integer().default(Date.now, 'current time'),
+  expiry: joi.number().integer().default(util.getExpiry, 'session timeout'),
   secret: joi.string().default(util.generateSessionSecret, 'session secret')
 });

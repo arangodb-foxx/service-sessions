@@ -36,11 +36,6 @@
       "default": 1209600,
       "type": "integer",
       "description": "Session timeout in seconds."
-    },
-    "expiryType": {
-      "default": "lastAccess",
-      "type": "string",
-      "description": "Session timeout property."
     }
   }
 }
