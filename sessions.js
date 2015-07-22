@@ -43,6 +43,14 @@ const Repository = Foxx.Repository.extend({
       else throw e;
     }
     return true;
+  },
+  transaction(fn) {
+    arangodb.db._executeTransaction({
+      collections: {
+        write: this.collection.name()
+      },
+      action: fn
+    });
   }
 });
 module.exports = new Repository(

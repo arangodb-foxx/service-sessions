@@ -38,11 +38,13 @@ ctrl.get('/:sessionId', function (req, res) {
 * Replaces the session data of a session in the database.
 */
 ctrl.put('/:sessionId', function (req, res) {
-  let session = sessions.byId(req.params('sessionId'));
-  session.set(req.params('session'));
-  sessions.replace(session);
-  res.json(session.forClient());
-  res.status(200);
+  sessions.transaction(function () {
+    let session = sessions.byId(req.params('sessionId'));
+    session.set(req.params('session'));
+    sessions.replace(session);
+    res.json(session.forClient());
+    res.status(200);
+  });
 })
 .pathParam('sessionId', schemas.sessionId)
 .bodyParam('session', schemas.incomingSession);
@@ -62,13 +64,15 @@ ctrl.delete('/:sessionId', function (req, res) {
 * Authenticates the user with the given credentials.
 */
 ctrl.put('/:sessionId/authenticate', function (req, res) {
-  let session = sessions.byId(req.params('sessionId'));
   let credentials = req.params('credentials');
   let userData = util.authenticate(credentials.username, credentials.password);
-  session.set({uid: credentials.username, userData: userData});
-  sessions.replace(session);
-  res.json(session.forClient());
-  res.status(200);
+  sessions.transaction(function () {
+    let session = sessions.byId(req.params('sessionId'));
+    session.set({uid: credentials.username, userData: userData});
+    sessions.replace(session);
+    res.json(session.forClient());
+    res.status(200);
+  });
 })
 .pathParam('sessionId', schemas.sessionId)
 .bodyParam('credentials', schemas.credentials);
@@ -78,11 +82,13 @@ ctrl.put('/:sessionId/authenticate', function (req, res) {
 * Removes the session's user data.
 */
 ctrl.put('/:sessionId/logout', function (req, res) {
-  let session = sessions.byId(req.params('sessionId'));
-  session.set({uid: null, userData: {}});
-  sessions.replace(session);
-  res.json(session.forClient());
-  res.status(200);
+  sessions.transaction(function () {
+    let session = sessions.byId(req.params('sessionId'));
+    session.set({uid: null, userData: {}});
+    sessions.replace(session);
+    res.json(session.forClient());
+    res.status(200);
+  });
 })
 .pathParam('sessionId', schemas.sessionId);
 
