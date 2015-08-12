@@ -6,6 +6,9 @@
   "description": "ArangoDB Session-Service",
   "defaultDocument": "",
   "controllers": "api.js",
+  "engines": {
+    "arangodb": "^2.7.0"
+  },
   "scripts": {
     "setup": "scripts/setup.js",
     "teardown": "scripts/teardown.js",
