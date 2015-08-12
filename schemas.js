@@ -20,6 +20,8 @@ exports.signature = joi.string().required()
 .description('A cryptographic signature.');
 exports.signable = joi.object().required()
 .description('Signable object payload.');
+exports.oauth2GrantToken = joi.string().required()
+.description('OAuth2 Grant Token');
 
 exports.session = joi.object()
 .keys({

@@ -1,7 +1,8 @@
 /*global require, applicationContext */
 'use strict';
-const Foxx = require('org/arangodb/foxx');
+const querystring = require('querystring');
 const httperr = require('http-errors');
+const Foxx = require('org/arangodb/foxx');
 const schemas = require('./schemas');
 const Session = require('./models').Session;
 const sessions = require('./sessions');
@@ -116,35 +117,34 @@ if (oauth2) {
     if (!publicUrl) throw new httperr.InternalServerError('"publicUrl" not configured');
     let sessionId = req.params('sessionId');
     let session = sessions.byId(sessionId);
+    res.set('location', oauth2.getAuthUrl(publicUrl + 'oauth2-login?' + querystring.stringify({
+      sessionId: sessionId,
+      signature: util.createSignature(session.get('secret'), sessionId)
+    })));
     res.status(303);
-    res.set('location', oauth2.getAuthUrl(
-      `${publicUrl}${sessionId}/oauth2-login`,
-      {signature: util.createSignature(session.get('secret'), sessionId)}
-    ));
-  });
+  })
+  .pathParam('sessionId', schemas.sessionId);
 
   /** OAuth2 endpoint.
   *
   * Verifies the OAuth2 authentication.
   */
-  ctrl.get('/:sessionId/oauth2-login', function (req, res) {
+  ctrl.get('/oauth2-login', function (req, res) {
     if (!publicUrl) throw new httperr.InternalServerError('"publicUrl" not configured');
     let sessionId = req.params('sessionId');
     let session = sessions.byId(sessionId);
     let signature = req.params('signature');
     let valid = util.verifySignature(session.get('secret'), sessionId, signature);
     if (!valid) throw new httperr.BadRequest('Signature mismatch');
-    let authData = oauth2.exchangeGrantToken(
-      req.params('code'),
-      `${publicUrl}${sessionId}/oauth2-login`
-    );
+    let authData = oauth2.exchangeGrantToken(req.params('code'), publicUrl + 'oauth2-login');
     let profile = oauth2.fetchActiveUser(authData.access_token);
-    session.set('userData', profile);
-    session.set('uid', authData.access_token);
-    session.save();
-    res.json(session.forClient());
-    res.status(200);
-  });
+    sessions.update(session, {userData: profile, uid: 'oauth2/' + authData.access_token});
+    res.set('location', publicUrl + sessionId);
+    res.status(303);
+  })
+  .queryParam('code', schemas.oauth2GrantToken)
+  .queryParam('signature', schemas.signature)
+  .queryParam('sessionId', schemas.sessionId);
 }
 
 /** Sign a payload.
