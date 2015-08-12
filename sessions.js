@@ -18,7 +18,7 @@ const Repository = Foxx.Repository.extend({
       ) throw new NotFound();
       else throw e;
     }
-    if (Date.now() > data.expiry) {
+    if (data.expiry && Date.now() > data.expiry) {
       this.remove(id);
       throw new NotFound();
     }
