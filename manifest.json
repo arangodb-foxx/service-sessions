@@ -12,11 +12,6 @@
     "prune": "scripts/prune.js"
   },
   "configuration": {
-    "usersRoot": {
-      "default": "/users",
-      "type": "string",
-      "description": "Root URL of user service."
-    },
     "sessionIdLength": {
       "default": 16,
       "type": "integer",
@@ -36,6 +31,23 @@
       "default": 1209600,
       "type": "integer",
       "description": "Session timeout in seconds."
+    },
+    "usersRoot": {
+      "type": "string",
+      "description": "Root URL of user service.",
+      "required": false
+    },
+    "publicUrl": {
+      "type": "string",
+      "description": "Public URL of this session service (required for OAuth2).",
+      "required": false
+    }
+  },
+  "dependencies": {
+    "oauth2": {
+      "name": "oauth2",
+      "version": "^2.0.0",
+      "required": false
     }
   }
 }

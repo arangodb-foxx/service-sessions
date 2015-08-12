@@ -7,6 +7,7 @@ const Session = require('./models').Session;
 const sessions = require('./sessions');
 const util = require('./util');
 const ctrl = new Foxx.Controller(applicationContext);
+const oauth2 = applicationContext.dependencies.oauth2;
 
 /** Create a new session.
 *
@@ -65,39 +66,86 @@ ctrl.delete('/:sessionId', function (req, res) {
 })
 .pathParam('sessionId', schemas.sessionId);
 
-/** Log in a user.
-*
-* Authenticates the user with the given credentials.
-*/
-ctrl.put('/:sessionId/authenticate', function (req, res) {
-  const credentials = req.params('credentials');
-  const userData = util.authenticate(credentials.username, credentials.password);
-  let session;
-  sessions.transaction(function () {
-    session = sessions.byId(req.params('sessionId'));
-    sessions.update(session, {uid: credentials.username, userData: userData});
-  });
-  res.json(session.forClient());
-  res.status(200);
-})
-.pathParam('sessionId', schemas.sessionId)
-.bodyParam('credentials', schemas.credentials);
+if (applicationContext.configuration.usersRoot) {
+  /** Log in a user.
+  *
+  * Authenticates the user with the given credentials.
+  */
+  ctrl.put('/:sessionId/authenticate', function (req, res) {
+    const credentials = req.params('credentials');
+    const userData = util.authenticate(credentials.username, credentials.password);
+    let session;
+    sessions.transaction(function () {
+      session = sessions.byId(req.params('sessionId'));
+      sessions.update(session, {uid: credentials.username, userData: userData});
+    });
+    res.json(session.forClient());
+    res.status(200);
+  })
+  .pathParam('sessionId', schemas.sessionId)
+  .bodyParam('credentials', schemas.credentials);
+}
 
-/** Log out a user.
-*
-* Clears the session's user data.
-*/
-ctrl.put('/:sessionId/logout', function (req, res) {
-  let session;
-  sessions.transaction(function () {
-    session = sessions.byId(req.params('sessionId'));
-    session.set({uid: null, userData: {}});
-    sessions.replace(session);
+if (applicationContext.configuration.usersRoot || oauth2) {
+  /** Log out a user.
+  *
+  * Clears the session's user data.
+  */
+  ctrl.put('/:sessionId/logout', function (req, res) {
+    let session;
+    sessions.transaction(function () {
+      session = sessions.byId(req.params('sessionId'));
+      session.set({uid: null, userData: {}});
+      sessions.replace(session);
+    });
+    res.json(session.forClient());
+    res.status(200);
+  })
+  .pathParam('sessionId', schemas.sessionId);
+}
+
+if (oauth2) {
+  let publicUrl = applicationContext.configuration.publicUrl;
+  if (publicUrl && publicUrl.charAt(publicUrl.length - 1) !== '/') publicUrl += '/';
+
+  /** Log in with OAuth2.
+  *
+  * Redirects to the OAuth2 provider's authentication endpoint.
+  */
+  ctrl.get('/:sessionId/oauth2', function (req, res) {
+    if (!publicUrl) throw new httperr.InternalServerError('"publicUrl" not configured');
+    let sessionId = req.params('sessionId');
+    let session = sessions.byId(sessionId);
+    res.status(303);
+    res.set('location', oauth2.getAuthUrl(
+      `${publicUrl}${sessionId}/oauth2-login`,
+      {signature: util.createSignature(session.get('secret'), sessionId)}
+    ));
   });
-  res.json(session.forClient());
-  res.status(200);
-})
-.pathParam('sessionId', schemas.sessionId);
+
+  /** OAuth2 endpoint.
+  *
+  * Verifies the OAuth2 authentication.
+  */
+  ctrl.get('/:sessionId/oauth2-login', function (req, res) {
+    if (!publicUrl) throw new httperr.InternalServerError('"publicUrl" not configured');
+    let sessionId = req.params('sessionId');
+    let session = sessions.byId(sessionId);
+    let signature = req.params('signature');
+    let valid = util.verifySignature(session.get('secret'), sessionId, signature);
+    if (!valid) throw new httperr.BadRequest('Signature mismatch');
+    let authData = oauth2.exchangeGrantToken(
+      req.params('code'),
+      `${publicUrl}${sessionId}/oauth2-login`
+    );
+    let profile = oauth2.fetchActiveUser(authData.access_token);
+    session.set('userData', profile);
+    session.set('uid', authData.access_token);
+    session.save();
+    res.json(session.forClient());
+    res.status(200);
+  });
+}
 
 /** Sign a payload.
 *
