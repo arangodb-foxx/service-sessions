@@ -62,6 +62,14 @@ Creates a signature for the request body valid for the session only. Returns an 
 
 Validates the signature against the request body. Returns the request body if the signature is valid for the session or HTTP 400 if the signature is invalid.
 
+### POST /:sessionId/nonce
+
+Creates a nonce.
+
+### PUT /:sessionId/nonce/:nonce
+
+Marks and validates a nonce.
+
 ## License
 
 This code is distributed under the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).

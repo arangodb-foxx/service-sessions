@@ -3,6 +3,7 @@
 const querystring = require('querystring');
 const httperr = require('http-errors');
 const Foxx = require('org/arangodb/foxx');
+const crypto = require('org/arangodb/crypto');
 const schemas = require('./schemas');
 const Session = require('./models').Session;
 const sessions = require('./sessions');
@@ -184,3 +185,29 @@ ctrl.put('/:sessionId/sign/:signature', function (req, res) {
 .pathParam('sessionId', schemas.sessionId)
 .pathParam('signature', schemas.signature)
 .bodyParam('payload', schemas.signable);
+
+/** Creates a new nonce.
+*
+* Creates a cryptographic nonce.
+*/
+ctrl.post('/:sessionId/nonce', function (req, res) {
+  sessions.byId(req.params('sessionId'));
+  let nonce = crypto.createNonce();
+  res.json({nonce});
+  res.status(201);
+})
+.pathParam('sessionId', schemas.sessionId);
+
+/** Reads and uses a nonce.
+*
+* Returns true if the nonce was valid.
+*/
+ctrl.put('/:sessionId/nonce/:nonce', function (req, res) {
+  sessions.byId(req.params('sessionId'));
+  let nonce = req.params('nonce');
+  let valid = crypto.checkAndMarkNonce(nonce);
+  res.json({valid});
+  res.status(200);
+})
+.pathParam('sessionId', schemas.sessionId)
+.pathParam('nonce', schemas.nonce);

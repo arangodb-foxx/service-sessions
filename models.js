@@ -8,6 +8,6 @@ exports.Session = Foxx.Model.extend({
   schema: schemas.session,
   forClient() {
     var data = Foxx.Model.prototype.forClient.call(this);
-    return _.omit(data, 'secret');
+    return _.omit(data, 'secret', 'nonces');
   }
 });
