@@ -1,5 +1,5 @@
 {
-  "name": "session-service",
+  "name": "service-sessions",
   "version": "1.3.0",
   "author": "ArangoDB GmbH",
   "license": "Apache License, Version 2.0",
